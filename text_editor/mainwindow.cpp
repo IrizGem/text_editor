@@ -1,4 +1,5 @@
 #include "mainwindow.h"
+#include <fstream>
 
 #include <QHBoxLayout>
 #include <QPlainTextEdit>
@@ -9,7 +10,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    m_fileName = new QString;
+    m_fileName = QString();
     editor = new QPlainTextEdit;
     setCentralWidget(editor);
     createMenus();
@@ -43,12 +44,20 @@ void MainWindow::createActions()
 void MainWindow::open()
 {
     m_fileName = QFileDialog::getOpenFileName(this, "Open File", ".", "Text Files (*.txt *.md *.csv)");
-    readText(m_fileName);
+    if (m_fileName != "")
+        readText(m_fileName);
 }
 
 void MainWindow::readText(const QString fileName)
 {
-
+    std::ifstream fileStream(fileName.toStdString());
+    std::string text = "";
+    std::string line;
+    while (std::getline(fileStream, line)) {
+        text += line + '\n';
+    }
+    fileStream.close();
+    editor->document()->setPlainText(QString::fromStdString(text));
 }
 
 void MainWindow::save()
@@ -58,5 +67,9 @@ void MainWindow::save()
 
 void MainWindow::writeText(const QString fileName)
 {
-
-}
+    std::string text = editor->toPlainText().toStdString();
+    std::ofstream fileStream(fileName.toStdString());
+    std::string line;
+    fileStream << text;
+    fileStream.close();
+    }
